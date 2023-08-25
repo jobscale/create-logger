@@ -1,0 +1,36 @@
+{
+  "name": "create-logger",
+  "version": "0.1.0",
+  "description": "create-logger",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "pretest": "npm run lint",
+    "lint": "eslint .",
+    "test": "jest --runInBand --coverage --collectCoverage"
+  },
+  "pre-commit": [
+    "test"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jobscale/create-logger.git"
+  },
+  "keywords": ["logger", "logging"],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jobscale/create-logger/issues"
+  },
+  "homepage": "https://github.com/jobscale/create-logger#readme",
+  "devDependencies": {
+    "eslint": "^8.47.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-jest": "^27.2.3",
+    "jest": "^29.6.4",
+    "pre-commit": "^1.2.2"
+  }
+}
