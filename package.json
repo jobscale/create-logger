@@ -16,15 +16,15 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+git@github.com:jobscale/create-logger.git"
+    "url": "git+https://github.com/jobscale/create-logger.git"
   },
   "keywords": ["logger", "logging"],
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "git@github.com:jobscale/create-logger/issues"
+    "url": "https://github.com/jobscale/create-logger/issues"
   },
-  "homepage": "git@github.com:jobscale/create-logger#readme",
+  "homepage": "https://github.com/jobscale/create-logger#readme",
   "devDependencies": {
     "eslint": "^8.47.0",
     "eslint-config-airbnb-base": "^15.0.0",
