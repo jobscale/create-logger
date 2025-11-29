@@ -1,4 +1,4 @@
-const { createLogger } = require('..');
+import { createLogger } from '../index.js';
 
 describe('test @jobscale/create-logger', () => {
   describe('test logLevel error', () => {

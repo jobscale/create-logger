@@ -1,19 +1,20 @@
-const createLogger = level => {
+export const createLogger = level => {
   const native = () => {};
   const LIST = [
     'error', 'warn', 'info', 'debug', 'log',
   ];
-  /* eslint-disable no-console */
+  native.fn = console;
   const logger = {
-    error: console.error,
-    warn: console.warn,
-    info: console.info,
-    debug: console.debug,
-    log: console.log,
-    dir: console.dir,
-    trace: console.trace,
+    error: native.fn.error,
+    warn: native.fn.warn,
+    info: native.fn.info,
+    debug: native.fn.debug,
+    log: native.fn.log,
+    dir: native.fn.dir,
+    trace: native.fn.trace,
+    time: native.fn.time,
+    timeEnd: native.fn.timeEnd,
   };
-  /* eslint-enable no-console */
   const logLevel = LIST.indexOf(level || 'info');
   if (logLevel !== -1) {
     if (logLevel < LIST.indexOf('warn')) logger.warn = native;
@@ -28,6 +29,5 @@ const createLogger = level => {
   return logger;
 };
 
-module.exports = {
-  createLogger,
-};
+createLogger.createLogger = createLogger;
+export default createLogger;
