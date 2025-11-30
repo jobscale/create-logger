@@ -1,12 +1,9 @@
 const native = () => {};
-export const createLogger = level => {
-  const LOG_LIST = [
-    'error', 'warn', 'info', 'debug', 'verbose',
-  ];
+const initCache = cache => {
   if (!native.fn) {
     native.fn = console;
     // assign native
-    Object.assign(createLogger, {
+    Object.assign(cache, {
       error: native.fn.error,
       warn: native.fn.warn,
       info: native.fn.info,
@@ -44,6 +41,18 @@ export const createLogger = level => {
     native.fn.countReset = native;
     native.fn.clear = native;
   }
+};
+
+/**
+ * create logger
+ * @param {String} level error | warn | info | debug | verbose
+ * @returns logger instance
+ */
+export const createLogger = (level = 'info') => {
+  initCache(createLogger);
+  const LOG_LIST = [
+    'error', 'warn', 'info', 'debug', 'verbose',
+  ];
   // create logger
   const logger = {
     error: createLogger.error,
@@ -65,7 +74,7 @@ export const createLogger = level => {
     clear: createLogger.clear,
   };
   // setup logging level
-  const logLevel = LOG_LIST.indexOf(level || 'info');
+  const logLevel = LOG_LIST.indexOf(level.toLowerCase());
   if (logLevel !== -1) {
     if (logLevel < LOG_LIST.indexOf('warn')) logger.warn = native;
     if (logLevel < LOG_LIST.indexOf('info')) logger.info = native;
