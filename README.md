@@ -10,9 +10,7 @@
 |warn|1|yellow||
 |info|2|white|✓|
 |debug|3|white||
-|log|4|white||
-|dir|4|white||
-|trace|4|white||
+|verbose|4|white||
 
 ## Installation
 
@@ -22,34 +20,21 @@ npm i @jobscale/create-logger
 
 ## Examples
 
-### logging
+### logging (ES Module)
 
 ```javascript
-const { createLogger } = require('@jobscale/create-logger');
-
-const logger = createLogger('info);
-logger.error('error', { timestamp: Date.now() });
-logger.warn('warn', { timestamp: Date.now() });
-logger.info('info', { timestamp: Date.now() });
-logger.debug('debug', { timestamp: Date.now() });
-logger.log('log', { timestamp: Date.now() });
-```
-
-### logging (ES)
-
-```c++
 import { createLogger } from '@jobscale/create-logger';
 
-const logger = createLogger('info);
+const logger = createLogger('info');
 logger.error('error', { timestamp: Date.now() });
 logger.warn('warn', { timestamp: Date.now() });
 logger.info('info', { timestamp: Date.now() });
 logger.debug('debug', { timestamp: Date.now() });
-logger.log('log', { timestamp: Date.now() });
+logger.verbose('verbose', { timestamp: Date.now() });
 ```
 
 ### test
 
-```javascript
+```bash
 npm test
 ```
