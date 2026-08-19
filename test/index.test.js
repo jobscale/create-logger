@@ -1,215 +1,94 @@
+/* eslint-disable jest/expect-expect, no-console */
 import { jest } from '@jest/globals';
-import { createLogger } from '../index.js';
 
 describe('test @jobscale/create-logger', () => {
-  const timestamp = new Date().toLocaleString();
-  const spy = {};
+  let createLogger;
+  let originalConsole;
+  let mockedConsole;
 
-  beforeAll(() => {
-    createLogger();
-  });
+  const callAllLevels = logger => {
+    logger.error('error');
+    logger.warn('warn');
+    logger.info('info');
+    logger.debug('debug');
+    logger.verbose('verbose');
+  };
 
-  beforeEach(() => {
-    spy.error = jest.spyOn(createLogger, 'error').mockImplementation(() => { });
-    spy.warn = jest.spyOn(createLogger, 'warn').mockImplementation(() => { });
-    spy.info = jest.spyOn(createLogger, 'info').mockImplementation(() => { });
-    spy.debug = jest.spyOn(createLogger, 'debug').mockImplementation(() => { });
-    spy.verbose = jest.spyOn(createLogger, 'verbose').mockImplementation(() => { });
+  const expectCounts = expected => {
+    expect(mockedConsole.error).toHaveBeenCalledTimes(expected.error);
+    expect(mockedConsole.warn).toHaveBeenCalledTimes(expected.warn);
+    expect(mockedConsole.info).toHaveBeenCalledTimes(expected.info);
+    expect(mockedConsole.debug).toHaveBeenCalledTimes(expected.debug);
+    expect(mockedConsole.verbose).toHaveBeenCalledTimes(expected.verbose);
+  };
+
+  beforeEach(async () => {
+    originalConsole = {
+      error: console.error,
+      warn: console.warn,
+      info: console.info,
+      debug: console.debug,
+      log: console.log,
+      verbose: console.verbose,
+    };
+
+    mockedConsole = {
+      error: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn(),
+      debug: jest.fn(),
+      log: jest.fn(),
+      verbose: jest.fn(),
+    };
+
+    console.error = mockedConsole.error;
+    console.warn = mockedConsole.warn;
+    console.info = mockedConsole.info;
+    console.debug = mockedConsole.debug;
+    console.log = mockedConsole.log;
+    console.verbose = mockedConsole.verbose;
+
+    jest.resetModules();
+    ({ createLogger } = await import('../index.js'));
   });
 
   afterEach(() => {
+    console.error = originalConsole.error;
+    console.warn = originalConsole.warn;
+    console.info = originalConsole.info;
+    console.debug = originalConsole.debug;
+    console.log = originalConsole.log;
+    console.verbose = originalConsole.verbose;
     jest.restoreAllMocks();
   });
 
-  describe('test logLevel error', () => {
-    it('should call createLogger.error', () => {
-      const logger = createLogger('error');
-      logger.error('OK', { timestamp });
-      expect(spy.error).toHaveBeenCalledTimes(1);
-    });
-
-    it('should not call createLogger.warn', () => {
-      const logger = createLogger('error');
-      logger.warn('NG', { timestamp });
-      expect(spy.warn).not.toHaveBeenCalled();
-    });
-
-    it('should not call createLogger.info', () => {
-      const logger = createLogger('error');
-      logger.info('NG', { timestamp });
-      expect(spy.info).not.toHaveBeenCalled();
-    });
-
-    it('should not call createLogger.debug', () => {
-      const logger = createLogger('error');
-      logger.debug('NG', { timestamp });
-      expect(spy.debug).not.toHaveBeenCalled();
-    });
-
-    it('should not call createLogger.verbose', () => {
-      const logger = createLogger('error');
-      logger.verbose('NG', { timestamp });
-      expect(spy.verbose).not.toHaveBeenCalled();
-    });
+  it('logLevel error: only error is enabled', () => {
+    callAllLevels(createLogger('error'));
+    expectCounts({ error: 1, warn: 0, info: 0, debug: 0, verbose: 0 });
   });
 
-  describe('test logLevel warn', () => {
-    it('should call createLogger.error', () => {
-      const logger = createLogger('warn');
-      logger.error('OK', { timestamp });
-      expect(spy.error).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call createLogger.warn', () => {
-      const logger = createLogger('warn');
-      logger.warn('OK', { timestamp });
-      expect(spy.warn).toHaveBeenCalledTimes(1);
-    });
-
-    it('should not call createLogger.info', () => {
-      const logger = createLogger('warn');
-      logger.info('NG', { timestamp });
-      expect(spy.info).not.toHaveBeenCalled();
-    });
-
-    it('should not call createLogger.debug', () => {
-      const logger = createLogger('warn');
-      logger.debug('NG', { timestamp });
-      expect(spy.debug).not.toHaveBeenCalled();
-    });
-
-    it('should not call createLogger.verbose', () => {
-      const logger = createLogger('warn');
-      logger.verbose('NG', { timestamp });
-      expect(spy.verbose).not.toHaveBeenCalled();
-    });
+  it('logLevel warn: error and warn are enabled', () => {
+    callAllLevels(createLogger('warn'));
+    expectCounts({ error: 1, warn: 1, info: 0, debug: 0, verbose: 0 });
   });
 
-  describe('test logLevel info', () => {
-    it('should call createLogger.error', () => {
-      const logger = createLogger('info');
-      logger.error('OK', { timestamp });
-      expect(spy.error).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call createLogger.warn', () => {
-      const logger = createLogger('info');
-      logger.warn('OK', { timestamp });
-      expect(spy.warn).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call createLogger.info', () => {
-      const logger = createLogger('info');
-      logger.info('OK', { timestamp });
-      expect(spy.info).toHaveBeenCalledTimes(1);
-    });
-
-    it('should not call createLogger.debug', () => {
-      const logger = createLogger('info');
-      logger.debug('NG', { timestamp });
-      expect(spy.debug).not.toHaveBeenCalled();
-    });
-
-    it('should not call createLogger.verbose', () => {
-      const logger = createLogger('info');
-      logger.verbose('NG', { timestamp });
-      expect(spy.verbose).not.toHaveBeenCalled();
-    });
+  it('logLevel info: error, warn, info are enabled', () => {
+    callAllLevels(createLogger('info'));
+    expectCounts({ error: 1, warn: 1, info: 1, debug: 0, verbose: 0 });
   });
 
-  describe('test logLevel debug', () => {
-    it('should call createLogger.error', () => {
-      const logger = createLogger('debug');
-      logger.error('OK', { timestamp });
-      expect(spy.error).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call createLogger.warn', () => {
-      const logger = createLogger('debug');
-      logger.warn('OK', { timestamp });
-      expect(spy.warn).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call createLogger.info', () => {
-      const logger = createLogger('debug');
-      logger.info('OK', { timestamp });
-      expect(spy.info).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call createLogger.debug', () => {
-      const logger = createLogger('debug');
-      logger.debug('OK', { timestamp });
-      expect(spy.debug).toHaveBeenCalledTimes(1);
-    });
-
-    it('should not call createLogger.verbose', () => {
-      const logger = createLogger('debug');
-      logger.verbose('NG', { timestamp });
-      expect(spy.verbose).not.toHaveBeenCalled();
-    });
+  it('logLevel debug: up to debug is enabled', () => {
+    callAllLevels(createLogger('debug'));
+    expectCounts({ error: 1, warn: 1, info: 1, debug: 1, verbose: 0 });
   });
 
-  describe('test logLevel verbose', () => {
-    it('should call createLogger.error', () => {
-      const logger = createLogger('verbose');
-      logger.error('OK', { timestamp });
-      expect(spy.error).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call createLogger.warn', () => {
-      const logger = createLogger('verbose');
-      logger.warn('OK', { timestamp });
-      expect(spy.warn).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call createLogger.info', () => {
-      const logger = createLogger('verbose');
-      logger.info('OK', { timestamp });
-      expect(spy.info).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call createLogger.debug', () => {
-      const logger = createLogger('verbose');
-      logger.debug('OK', { timestamp });
-      expect(spy.debug).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call createLogger.verbose', () => {
-      const logger = createLogger('verbose');
-      logger.verbose('OK', { timestamp });
-      expect(spy.verbose).toHaveBeenCalledTimes(1);
-    });
+  it('logLevel verbose: all levels are enabled', () => {
+    callAllLevels(createLogger('verbose'));
+    expectCounts({ error: 1, warn: 1, info: 1, debug: 1, verbose: 1 });
   });
 
-  describe('test default logLevel (info)', () => {
-    it('should call createLogger.error', () => {
-      const logger = createLogger();
-      logger.error('OK', { timestamp });
-      expect(spy.error).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call createLogger.warn', () => {
-      const logger = createLogger();
-      logger.warn('OK', { timestamp });
-      expect(spy.warn).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call createLogger.info', () => {
-      const logger = createLogger();
-      logger.info('OK', { timestamp });
-      expect(spy.info).toHaveBeenCalledTimes(1);
-    });
-
-    it('should not call createLogger.debug', () => {
-      const logger = createLogger();
-      logger.debug('NG', { timestamp });
-      expect(spy.debug).not.toHaveBeenCalled();
-    });
-
-    it('should not call createLogger.verbose', () => {
-      const logger = createLogger();
-      logger.verbose('NG', { timestamp });
-      expect(spy.verbose).not.toHaveBeenCalled();
-    });
+  it('default logLevel is info', () => {
+    callAllLevels(createLogger());
+    expectCounts({ error: 1, warn: 1, info: 1, debug: 0, verbose: 0 });
   });
 });

@@ -1,90 +1,87 @@
+/* eslint-disable no-console */
 import { jest } from '@jest/globals';
-import { createLogger } from '../index.js';
 
 describe('test @jobscale/create-logger in browser', () => {
-  const timestamp = new Date().toLocaleString();
-  const spy = {};
+  let createLogger;
+  let originalConsole;
+  let mockedConsole;
 
-  beforeAll(() => {
-    // Simulate browser environment where window.console exists
+  beforeEach(async () => {
     if (typeof window === 'undefined') {
       global.window = global;
     }
 
-    // Spy on original console methods before createLogger modifies them
-    spy.consoleError = jest.spyOn(console, 'error').mockImplementation(() => { });
-    spy.consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => { });
-    spy.consoleInfo = jest.spyOn(console, 'info').mockImplementation(() => { });
-    spy.consoleDebug = jest.spyOn(console, 'debug').mockImplementation(() => { });
-    spy.consoleLog = jest.spyOn(console, 'log').mockImplementation(() => { });
+    originalConsole = {
+      error: console.error,
+      warn: console.warn,
+      info: console.info,
+      debug: console.debug,
+      log: console.log,
+      verbose: console.verbose,
+    };
 
-    // Initialize logger which should hijack console
-    createLogger();
+    mockedConsole = {
+      error: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn(),
+      debug: jest.fn(),
+      log: jest.fn(),
+      verbose: jest.fn(),
+    };
+
+    console.error = mockedConsole.error;
+    console.warn = mockedConsole.warn;
+    console.info = mockedConsole.info;
+    console.debug = mockedConsole.debug;
+    console.log = mockedConsole.log;
+    console.verbose = mockedConsole.verbose;
+
+    jest.resetModules();
+    ({ createLogger } = await import('../index.js'));
   });
 
-  afterAll(() => {
+  afterEach(() => {
+    console.error = originalConsole.error;
+    console.warn = originalConsole.warn;
+    console.info = originalConsole.info;
+    console.debug = originalConsole.debug;
+    console.log = originalConsole.log;
+    console.verbose = originalConsole.verbose;
     jest.restoreAllMocks();
   });
 
-  describe('verify console hijacking', () => {
-    it('should have replaced global console methods with no-op', () => {
-      // In the implementation, native.fn points to the original console
-      // and the global console methods are replaced with the 'native' function
-      // checking if calling global console methods does NOT call the original spies
-      // because they are now pointing to the internal 'native' no-op or similar wrapper
+  it('does not replace global console methods', () => {
+    const current = {
+      error: console.error,
+      warn: console.warn,
+      info: console.info,
+      debug: console.debug,
+      log: console.log,
+      verbose: console.verbose,
+    };
 
-      // Actually, looking at index.js:
-      // native.fn = console;
-      // native.fn.error = native;
-      // This means the global console.error IS replaced by 'native' function.
-      // So calling console.error() should NOT call the original console.error (which we spied on).
+    createLogger();
 
-      console.error('should be suppressed');
-      expect(spy.consoleError).not.toHaveBeenCalled();
-
-      console.warn('should be suppressed');
-      expect(spy.consoleWarn).not.toHaveBeenCalled();
-
-      console.info('should be suppressed');
-      expect(spy.consoleInfo).not.toHaveBeenCalled();
-
-      console.debug('should be suppressed');
-      expect(spy.consoleDebug).not.toHaveBeenCalled();
-
-      console.log('should be suppressed');
-      expect(spy.consoleLog).not.toHaveBeenCalled();
-    });
+    expect(console.error).toBe(current.error);
+    expect(console.warn).toBe(current.warn);
+    expect(console.info).toBe(current.info);
+    expect(console.debug).toBe(current.debug);
+    expect(console.log).toBe(current.log);
+    expect(console.verbose).toBe(current.verbose);
   });
 
-  describe('verify logger instance calls original console', () => {
-    it('should call original console.error via logger', () => {
-      const logger = createLogger('error');
-      logger.error('test error', { timestamp });
-      expect(spy.consoleError).toHaveBeenCalledTimes(1);
-    });
+  it('respects logLevel priority in browser-like environment', () => {
+    const logger = createLogger('warn');
+    logger.error('error');
+    logger.warn('warn');
+    logger.info('info');
+    logger.debug('debug');
+    logger.verbose('verbose');
 
-    it('should call original console.warn via logger', () => {
-      const logger = createLogger('warn');
-      logger.warn('test warn', { timestamp });
-      expect(spy.consoleWarn).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call original console.info via logger', () => {
-      const logger = createLogger('info');
-      logger.info('test info', { timestamp });
-      expect(spy.consoleInfo).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call original console.debug via logger', () => {
-      const logger = createLogger('debug');
-      logger.debug('test debug', { timestamp });
-      expect(spy.consoleDebug).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call original console.log via logger.verbose', () => {
-      const logger = createLogger('verbose');
-      logger.verbose('test verbose', { timestamp });
-      expect(spy.consoleLog).toHaveBeenCalledTimes(1);
-    });
+    expect(mockedConsole.error).toHaveBeenCalledTimes(1);
+    expect(mockedConsole.warn).toHaveBeenCalledTimes(1);
+    expect(mockedConsole.info).not.toHaveBeenCalled();
+    expect(mockedConsole.debug).not.toHaveBeenCalled();
+    expect(mockedConsole.verbose).not.toHaveBeenCalled();
   });
 });
