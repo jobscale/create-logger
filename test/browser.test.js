@@ -85,3 +85,45 @@ describe('test @jobscale/create-logger in browser', () => {
     expect(mockedConsole.verbose).not.toHaveBeenCalled();
   });
 });
+
+describe('test @jobscale/create-logger fallback when console methods are missing', () => {
+  let originalDescriptors;
+  let mockedLog;
+
+  beforeEach(() => {
+    if (typeof window === 'undefined') {
+      global.window = global;
+    }
+    originalDescriptors = {
+      verbose: Object.getOwnPropertyDescriptor(console, 'verbose'),
+      debug: Object.getOwnPropertyDescriptor(console, 'debug'),
+      log: Object.getOwnPropertyDescriptor(console, 'log'),
+    };
+    mockedLog = jest.fn();
+    console.log = mockedLog;
+    delete console.verbose;
+    delete console.debug;
+  });
+
+  afterEach(() => {
+    const restore = (key, desc) => {
+      if (desc) Object.defineProperty(console, key, desc);
+      else delete console[key];
+    };
+    restore('verbose', originalDescriptors.verbose);
+    restore('debug', originalDescriptors.debug);
+    restore('log', originalDescriptors.log);
+    jest.restoreAllMocks();
+  });
+
+  it('falls back to console.log when verbose and debug are missing', async () => {
+    jest.resetModules();
+    const { createLogger } = await import('../index.js');
+    const logger = createLogger('verbose');
+    logger.debug('d');
+    logger.verbose('v');
+    expect(mockedLog).toHaveBeenCalledWith('d');
+    expect(mockedLog).toHaveBeenCalledWith('v');
+    expect(mockedLog).toHaveBeenCalledTimes(2);
+  });
+});

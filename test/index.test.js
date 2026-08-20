@@ -91,4 +91,53 @@ describe('test @jobscale/create-logger', () => {
     callAllLevels(createLogger());
     expectCounts({ error: 1, warn: 1, info: 1, debug: 0, verbose: 0 });
   });
+
+  it('invalid logLevel disables all standard methods', async () => {
+    const { createLogger: create } = await import('../index.js');
+    callAllLevels(create('bogus'));
+    expectCounts({ error: 0, warn: 0, info: 0, debug: 0, verbose: 0 });
+  });
+
+  it('named logger export uses default info level', async () => {
+    const { logger } = await import('../index.js');
+    callAllLevels(logger);
+    expectCounts({ error: 1, warn: 1, info: 1, debug: 0, verbose: 0 });
+  });
+
+  it('default export is the createLogger function', async () => {
+    const mod = await import('../index.js');
+    expect(mod.default).toBe(mod.createLogger);
+  });
+
+  it('passes arguments through to console methods', () => {
+    const logger = createLogger('verbose');
+    logger.error('e1', 'e2', { a: 1 });
+    logger.warn('w1');
+    logger.info('i1', 'i2');
+    logger.debug('d1');
+    logger.verbose('v1', 42);
+    expect(mockedConsole.error).toHaveBeenCalledWith('e1', 'e2', { a: 1 });
+    expect(mockedConsole.warn).toHaveBeenCalledWith('w1');
+    expect(mockedConsole.info).toHaveBeenCalledWith('i1', 'i2');
+    expect(mockedConsole.debug).toHaveBeenCalledWith('d1');
+    expect(mockedConsole.verbose).toHaveBeenCalledWith('v1', 42);
+  });
+
+  it('non-level console methods pass through regardless of level', async () => {
+    const tableSpy = jest.fn();
+    const groupSpy = jest.fn();
+    const traceSpy = jest.fn();
+    console.table = tableSpy;
+    console.group = groupSpy;
+    console.trace = traceSpy;
+    jest.resetModules();
+    const { createLogger: create } = await import('../index.js');
+    const logger = create('error');
+    logger.table([{ a: 1 }]);
+    logger.group('g');
+    logger.trace('t');
+    expect(tableSpy).toHaveBeenCalledWith([{ a: 1 }]);
+    expect(groupSpy).toHaveBeenCalledWith('g');
+    expect(traceSpy).toHaveBeenCalledWith('t');
+  });
 });

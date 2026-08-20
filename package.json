@@ -22,7 +22,7 @@
     "pretest": "date -Iseconds",
     "lint": "eslint",
     "posttest": "npm run lint",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --coverage --collectCoverage"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --coverage --collectCoverage --verbose"
   },
   "pre-commit": "test",
   "devDependencies": {
