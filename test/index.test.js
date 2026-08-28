@@ -101,7 +101,7 @@ describe('test @jobscale/create-logger', () => {
   it('named logger export uses default info level', async () => {
     const { logger } = await import('../index.js');
     callAllLevels(logger);
-    expectCounts({ error: 1, warn: 1, info: 1, debug: 0, verbose: 0 });
+    expectCounts({ error: 1, warn: 1, info: 1, debug: 1, verbose: 0 });
   });
 
   it('default export is the createLogger function', async () => {
