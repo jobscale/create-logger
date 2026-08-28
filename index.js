@@ -12,5 +12,5 @@ export const createLogger = (level = 'info') => new Proxy(Logger, {
     return target[prop];
   },
 });
-export const logger = createLogger();
+export const logger = createLogger('debug');
 export default createLogger;
