@@ -87,9 +87,9 @@ describe('test @jobscale/create-logger', () => {
     expectCounts({ error: 1, warn: 1, info: 1, debug: 1, verbose: 1 });
   });
 
-  it('default logLevel is info', () => {
+  it('default logLevel is debug', () => {
     callAllLevels(createLogger());
-    expectCounts({ error: 1, warn: 1, info: 1, debug: 0, verbose: 0 });
+    expectCounts({ error: 1, warn: 1, info: 1, debug: 1, verbose: 0 });
   });
 
   it('invalid logLevel disables all standard methods', async () => {
