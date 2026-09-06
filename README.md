@@ -2,15 +2,26 @@
 
 ## Description
 
-***log level and priority***
+```js
+createLogger(level: String, { typed: Any, timestamp: Any, callback: Function })
+```
 
-|level|priority|color|default|
-|:-:|:-:|:-:|:-:|
-|error|0|red||
-|warn|1|yellow||
-|info|2|white|✓|
-|debug|3|white||
-|verbose|4|white||
+### Log Levels and priority
+
+|level|priority|default|
+|:-:|:-:|:-:|
+|fail|0||
+|error|1||
+|warn|2||
+|info|3||
+|debug|4|✓|
+|verbose|5||
+
+### Options
+
+* typed - shows the log level in the log message
+* timestamp - shows the timestamp in the log message
+* callback - calls a callback function with the log message
 
 ## Installation
 
@@ -23,14 +34,16 @@ npm i @jobscale/create-logger
 ### Nodejs (ES Module)
 
 ```javascript
-import { createLogger } from '@jobscale/create-logger';
+import { createLogger, logger } from '@jobscale/create-logger';
 
-const logger = createLogger('info');
-logger.error('error', { timestamp: Date.now() });
-logger.warn('warn', { timestamp: Date.now() });
-logger.info('info', { timestamp: Date.now() });
-logger.debug('debug', { timestamp: Date.now() });
-logger.verbose('verbose', { timestamp: Date.now() });
+const myLogger = createLogger('info', { typed: true });
+
+logger.error('error', { data: new Date() });
+logger.warn('warn', { data: new Date() });
+logger.info('info', { data: new Date() });
+logger.debug('debug', { data: new Date() });
+logger.verbose('verbose', { data: new Date() });
+myLogger.verbose('verbose', { data: new Date() });
 ```
 
 ### Browser (type="module")
@@ -38,12 +51,14 @@ logger.verbose('verbose', { timestamp: Date.now() });
 ```js
 import { createLogger, logger } from 'https://esm.sh/@jobscale/create-logger';
 
-const myLogger = createLogger('verbose');
-logger.error('error', { timestamp: Date.now() });
-logger.warn('warn', { timestamp: Date.now() });
-logger.info('info', { timestamp: Date.now() });
-logger.debug('debug', { timestamp: Date.now() });
-myLogger.verbose('verbose', { timestamp: Date.now() });
+const myLogger = createLogger('verbose', { typed: true });
+
+logger.error('error', { data: new Date() });
+logger.warn('warn', { data: new Date() });
+logger.info('info', { data: new Date() });
+logger.debug('debug', { data: new Date() });
+logger.verbose('verbose', { data: new Date() });
+myLogger.verbose('verbose', { data: new Date() });
 ```
 
 ### Nodejs type="commonjs"
@@ -52,9 +67,11 @@ myLogger.verbose('verbose', { timestamp: Date.now() });
 const pending = import('@jobscale/create-logger');
 
 const main = async () => {
-  const { logger } = await pending;
-  logger.info('info', { timestamp: Date.now() });
-  logger.debug('debug', { timestamp: Date.now() });
+  const { createLogger } = await pending;
+  const logger = createLogger('debug', { typed: true });
+
+  logger.info('info', { data: new Date() });
+  logger.debug('debug', { data: new Date() });
 };
 main();
 ```
@@ -65,15 +82,26 @@ main();
 const pending = import('https://esm.sh/@jobscale/create-logger');
 
 const main = async () => {
-  const { logger } = await pending;
-  logger.info('info', { timestamp: Date.now() });
-  logger.debug('debug', { timestamp: Date.now() });
+  const { createLogger } = await pending;
+  const logger = createLogger('debug', { typed: true });
+
+  logger.info('info', { data: new Date() });
+  logger.debug('debug', { data: new Date() });
 };
 main();
 ```
 
-### test
+## Tests
+
+### smoke test
 
 ```bash
+node smoke-test.js
+```
+
+### jest test
+
+```bash
+npm i
 npm test
 ```
