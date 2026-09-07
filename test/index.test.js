@@ -5,6 +5,7 @@ describe('test @jobscale/create-logger', () => {
   let createLogger;
   let originalConsole;
   let mockedConsole;
+  let mockedCallback;
 
   const callAllLevels = logger => {
     logger.error('error');
@@ -14,12 +15,8 @@ describe('test @jobscale/create-logger', () => {
     logger.verbose('verbose');
   };
 
-  const expectCounts = expected => {
-    expect(mockedConsole.error).toHaveBeenCalledTimes(expected.error);
-    expect(mockedConsole.warn).toHaveBeenCalledTimes(expected.warn);
-    expect(mockedConsole.info).toHaveBeenCalledTimes(expected.info);
-    expect(mockedConsole.debug).toHaveBeenCalledTimes(expected.debug);
-    expect(mockedConsole.verbose).toHaveBeenCalledTimes(expected.verbose);
+  const expectCallbackCalls = expected => {
+    expect(mockedCallback).toHaveBeenCalledTimes(expected);
   };
 
   beforeEach(async () => {
@@ -27,26 +24,21 @@ describe('test @jobscale/create-logger', () => {
       error: console.error,
       warn: console.warn,
       info: console.info,
-      debug: console.debug,
       log: console.log,
-      verbose: console.verbose,
     };
 
     mockedConsole = {
       error: jest.fn(),
       warn: jest.fn(),
       info: jest.fn(),
-      debug: jest.fn(),
       log: jest.fn(),
-      verbose: jest.fn(),
     };
+    mockedCallback = jest.fn();
 
     console.error = mockedConsole.error;
     console.warn = mockedConsole.warn;
     console.info = mockedConsole.info;
-    console.debug = mockedConsole.debug;
     console.log = mockedConsole.log;
-    console.verbose = mockedConsole.verbose;
 
     jest.resetModules();
     ({ createLogger } = await import('../index.js'));
@@ -56,52 +48,53 @@ describe('test @jobscale/create-logger', () => {
     console.error = originalConsole.error;
     console.warn = originalConsole.warn;
     console.info = originalConsole.info;
-    console.debug = originalConsole.debug;
     console.log = originalConsole.log;
-    console.verbose = originalConsole.verbose;
     jest.restoreAllMocks();
   });
 
   it('logLevel error: only error is enabled', () => {
-    callAllLevels(createLogger('error'));
-    expectCounts({ error: 1, warn: 0, info: 0, debug: 0, verbose: 0 });
+    callAllLevels(createLogger('error', { callback: mockedCallback }));
+    expectCallbackCalls(1);
   });
 
   it('logLevel warn: error and warn are enabled', () => {
-    callAllLevels(createLogger('warn'));
-    expectCounts({ error: 1, warn: 1, info: 0, debug: 0, verbose: 0 });
+    callAllLevels(createLogger('warn', { callback: mockedCallback }));
+    expectCallbackCalls(2);
   });
 
   it('logLevel info: error, warn, info are enabled', () => {
-    callAllLevels(createLogger('info'));
-    expectCounts({ error: 1, warn: 1, info: 1, debug: 0, verbose: 0 });
+    callAllLevels(createLogger('info', { callback: mockedCallback }));
+    expectCallbackCalls(3);
   });
 
   it('logLevel debug: up to debug is enabled', () => {
-    callAllLevels(createLogger('debug'));
-    expectCounts({ error: 1, warn: 1, info: 1, debug: 1, verbose: 0 });
+    callAllLevels(createLogger('debug', { callback: mockedCallback }));
+    expectCallbackCalls(4);
   });
 
   it('logLevel verbose: all levels are enabled', () => {
-    callAllLevels(createLogger('verbose'));
-    expectCounts({ error: 1, warn: 1, info: 1, debug: 1, verbose: 1 });
+    callAllLevels(createLogger('verbose', { callback: mockedCallback }));
+    expectCallbackCalls(5);
   });
 
   it('default logLevel is debug', () => {
-    callAllLevels(createLogger());
-    expectCounts({ error: 1, warn: 1, info: 1, debug: 1, verbose: 0 });
+    callAllLevels(createLogger(undefined, { callback: mockedCallback }));
+    expectCallbackCalls(4);
   });
 
   it('invalid logLevel disables all standard methods', async () => {
     const { createLogger: create } = await import('../index.js');
-    callAllLevels(create('bogus'));
-    expectCounts({ error: 0, warn: 0, info: 0, debug: 0, verbose: 0 });
+    callAllLevels(create('bogus', { callback: mockedCallback }));
+    expectCallbackCalls(0);
   });
 
   it('named logger export uses default info level', async () => {
     const { logger } = await import('../index.js');
     callAllLevels(logger);
-    expectCounts({ error: 1, warn: 1, info: 1, debug: 1, verbose: 1 });
+    expect(mockedConsole.error).toHaveBeenCalledTimes(1);
+    expect(mockedConsole.warn).toHaveBeenCalledTimes(1);
+    expect(mockedConsole.info).toHaveBeenCalledTimes(1);
+    expect(mockedConsole.log).toHaveBeenCalledTimes(2);
   });
 
   it('default export is the createLogger function', async () => {
@@ -110,17 +103,25 @@ describe('test @jobscale/create-logger', () => {
   });
 
   it('passes arguments through to console methods', () => {
-    const logger = createLogger('verbose');
+    const logger = createLogger('verbose', { callback: mockedCallback });
     logger.error('e1', 'e2', { a: 1 });
     logger.warn('w1');
     logger.info('i1', 'i2');
     logger.debug('d1');
     logger.verbose('v1', 42);
-    expect(mockedConsole.error).toHaveBeenCalledWith('e1', 'e2', { a: 1 });
-    expect(mockedConsole.warn).toHaveBeenCalledWith('w1');
-    expect(mockedConsole.info).toHaveBeenCalledWith('i1', 'i2');
-    expect(mockedConsole.debug).toHaveBeenCalledWith('d1');
-    expect(mockedConsole.verbose).toHaveBeenCalledWith('v1', 42);
+    expect(mockedCallback).toHaveBeenNthCalledWith(1, 'e1', 'e2', { a: 1 });
+    expect(mockedCallback).toHaveBeenNthCalledWith(2, 'w1');
+    expect(mockedCallback).toHaveBeenNthCalledWith(3, 'i1', 'i2');
+    expect(mockedCallback).toHaveBeenNthCalledWith(4, 'd1');
+    expect(mockedCallback).toHaveBeenNthCalledWith(5, 'v1', 42);
+  });
+
+  it('routes debug and verbose output to console.log', () => {
+    const logger = createLogger('verbose');
+    logger.debug('d1');
+    logger.verbose('v1', 42);
+    expect(mockedConsole.log).toHaveBeenNthCalledWith(1, 'd1');
+    expect(mockedConsole.log).toHaveBeenNthCalledWith(2, 'v1', 42);
   });
 
   it('non-level console methods pass through regardless of level', async () => {

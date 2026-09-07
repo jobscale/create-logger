@@ -1,7 +1,7 @@
 const { ...Logger } = console;
 const logLevel = ['fail', 'error', 'warn', 'info', 'debug', 'verbose'];
-if (!Logger.verbose) Logger.verbose = Logger.log;
-if (!Logger.debug) Logger.debug = Logger.verbose;
+Logger.verbose = Logger.log;
+Logger.debug = Logger.verbose;
 if (!Logger.info) Logger.info = Logger.debug;
 if (!Logger.warn) Logger.warn = Logger.info;
 if (!Logger.error) Logger.error = Logger.warn;
