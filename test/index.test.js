@@ -78,7 +78,7 @@ describe('test @jobscale/create-logger', () => {
   });
 
   it('default logLevel is debug', () => {
-    callAllLevels(createLogger(undefined, { callback: mockedCallback }));
+    callAllLevels(createLogger({ callback: mockedCallback }));
     expectCallbackCalls(4);
   });
 
